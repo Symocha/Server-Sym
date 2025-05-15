@@ -68,6 +68,89 @@ class ServiceTaskTests {
         assertEquals(1, serviceTask.home(alice.id).size());
     }
 
+    @Nested
+    @SpringBootTest
+    @Transactional
+    class ServiceTaskTest {
+
+        @Autowired
+        ServiceTask serviceTask;
+
+        @Autowired
+        MUserRepository userRepo;
+
+        @Autowired
+        MTaskRepository taskRepo;
+
+        @Test
+        public void testDeleteTaskSuccessfully() throws Exception {
+
+            MUser user = new MUser();
+            user.username = "alice";
+            user.tasks = new ArrayList<>();
+            userRepo.save(user);
+
+
+            AddTaskRequest request = new AddTaskRequest();
+            request.name = "TestTask";
+            request.deadline = new Date();
+            serviceTask.addOne(request, user);
+
+
+            MUser updatedUser = userRepo.findByUsername("alice").get();
+            MTask task = updatedUser.tasks.get(0);
+
+
+            Assertions.assertEquals(1, updatedUser.tasks.size());
+
+
+            serviceTask.deleteTask(task.id, updatedUser);
+
+            MUser afterDeletion = userRepo.findByUsername("alice").get();
+            Assertions.assertTrue(afterDeletion.tasks.isEmpty());
+        }
+
+        @Test
+        public void testDeleteTaskWithInvalidId() {
+            MUser user = new MUser();
+            user.username = "bob";
+            user.tasks = new ArrayList<>();
+            userRepo.save(user);
+
+            Assertions.assertThrows(RuntimeException.class, () -> {
+                serviceTask.deleteTask(9999L, user);
+            });
+        }
+
+        @Test
+        public void testAccessDeniedWhenDeletingOthersTask() throws Exception {
+
+            MUser alice = new MUser();
+            alice.username = "alice";
+            alice.tasks = new ArrayList<>();
+            userRepo.save(alice);
+
+            AddTaskRequest request = new AddTaskRequest();
+            request.name = "AliceTask";
+            request.deadline = new Date();
+            serviceTask.addOne(request, alice);
+            alice = userRepo.findByUsername("alice").get();
+            MTask alicesTask = alice.tasks.get(0);
+
+
+            MUser bob = new MUser();
+            bob.username = "bob";
+            bob.tasks = new ArrayList<>();
+            userRepo.save(bob);
+
+
+            MUser bobFromDb = userRepo.findByUsername("bob").get();
+            Assertions.assertThrows(RuntimeException.class, () -> {
+                serviceTask.deleteTask(alicesTask.id, bobFromDb);
+            });
+        }
+    }
+
     @Test
     void testAjouterTacheNomVideKo() throws ServiceAccount.UsernameTooShort, ServiceAccount.PasswordTooShort,
             ServiceAccount.UsernameAlreadyTaken, BadCredentialsException {
