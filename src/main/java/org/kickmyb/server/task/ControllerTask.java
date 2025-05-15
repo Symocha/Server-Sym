@@ -1,5 +1,6 @@
 package org.kickmyb.server.task;
 
+import jakarta.servlet.http.HttpSession;
 import org.kickmyb.server.ConfigHTTP;
 import org.kickmyb.server.account.MUser;
 import org.kickmyb.transfer.AddTaskRequest;
@@ -46,7 +47,8 @@ public class ControllerTask {
     public @ResponseBody String updateProgress(@PathVariable long taskID, @PathVariable int value) {
         System.out.println("KICKB SERVER : Progress for task : " + taskID + " @" + value);
         ConfigHTTP.attenteArticifielle();
-        serviceTask.updateProgress(taskID, value);
+        MUser user = currentUser(); // 👈 même logique que delete
+        serviceTask.updateProgress(taskID, value, user); // 👈 passe l'utilisateur au service
         return "";
     }
 

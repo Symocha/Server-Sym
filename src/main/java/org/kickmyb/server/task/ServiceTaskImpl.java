@@ -5,8 +5,10 @@ import org.kickmyb.server.account.MUser;
 import org.kickmyb.server.account.MUserRepository;
 import org.kickmyb.transfer.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -91,16 +93,25 @@ public class ServiceTaskImpl implements ServiceTask {
     }
 
     @Override
-    public void updateProgress(long taskID, int value) {
-        MTask element = repo.findById(taskID).get();
-        // TODO validate value is between 0 and 100
-        MProgressEvent pe= new MProgressEvent();
+    public void updateProgress(long taskID, int value, MUser user) {
+        MTask task = repo.findById(taskID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tâche introuvable"));
+        if (!user.tasks.contains(task)) {
+            throw new RuntimeException("Access denied: Not the owner of the task");
+        }
+
+        if (value < 0 || value > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pourcentage invalide");
+        }
+
+        MProgressEvent pe = new MProgressEvent();
         pe.resultPercentage = value;
-        pe.completed = value ==100;
+        pe.completed = value == 100;
         pe.timestamp = DateTime.now().toDate();
         repoProgressEvent.save(pe);
-        element.events.add(pe);
-        repo.save(element);
+
+        task.events.add(pe);
+        repo.save(task);
     }
 
     @Override
