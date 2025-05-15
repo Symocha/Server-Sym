@@ -1,10 +1,15 @@
 package org.kickmyb.server;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kickmyb.server.account.BadCredentialsException;
 import org.kickmyb.server.account.MUser;
+import org.kickmyb.server.account.MUserRepository;
 import org.kickmyb.server.account.ServiceAccount;
+import org.kickmyb.server.task.MTask;
+import org.kickmyb.server.task.MTaskRepository;
 import org.kickmyb.server.task.ServiceTask;
 import org.kickmyb.transfer.AddTaskRequest;
 import org.kickmyb.transfer.SignupRequest;
@@ -13,7 +18,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import static org.assertj.core.api.Fail.fail;

@@ -11,10 +11,12 @@ public interface ServiceTask {
     class TooShort extends Exception {}
     class Empty extends Exception {}
 
+
     // entity handling
     TaskDetailResponse detail(Long id, MUser user);
     void addOne(AddTaskRequest req, MUser user) throws Existing, Empty, TooShort;
     void updateProgress(long taskID, int value);
+    void deleteTask(long taskID, MUser user);
     List<HomeItemResponse> home(Long userID);
     TaskDetailPhotoResponse detailPhoto(Long id, MUser user);
     List<HomeItemPhotoResponse> homePhoto(Long userID);

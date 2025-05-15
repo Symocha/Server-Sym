@@ -79,6 +79,18 @@ public class ServiceTaskImpl implements ServiceTask {
     }
 
     @Override
+    public void deleteTask(long taskID, MUser user) {
+        MTask task = repo.findById(taskID).orElseThrow(() -> new RuntimeException("Task not found"));
+        if (!user.tasks.contains(task)) {
+            throw new RuntimeException("Access denied: Not the owner of the task");
+        }
+
+        user.tasks.remove(task);
+        repoUser.save(user);
+        repo.delete(task);
+    }
+
+    @Override
     public void updateProgress(long taskID, int value) {
         MTask element = repo.findById(taskID).get();
         // TODO validate value is between 0 and 100
